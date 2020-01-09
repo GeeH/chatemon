@@ -7,6 +7,7 @@ use Chatemon\Exception\CombatNotWonException;
 use Chatemon\Exception\MoveDoesNotExistException;
 use Exception;
 use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
 final class Combat
@@ -17,12 +18,12 @@ final class Combat
     protected int $turns = 0;
     protected string $id;
     protected bool $winner = false;
-    private Logger $logger;
+    private LoggerInterface $logger;
 
     /**
      * @throws Exception
      */
-    public function __construct(Combatant $combatantOne, Combatant $combatantTwo, Logger $logger)
+    public function __construct(Combatant $combatantOne, Combatant $combatantTwo, LoggerInterface $logger)
     {
         $this->combatantOne = $combatantOne;
         $this->combatantTwo = $combatantTwo;
