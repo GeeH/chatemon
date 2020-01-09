@@ -29,11 +29,11 @@ final class CombatTest extends TestCase
         $this->combat = new Combat(
             CombatantFactory::create(
                 ['name' => 'One', 'level' => 1, 'attack' => 100, 'defence' => 5,
-                    'health' => 20, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
+                    'health' => 20, 'maxHealth' => 20, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
             ),
             CombatantFactory::create(
                 ['name' => 'Two', 'level' => 1, 'attack' => 100, 'defence' => 5,
-                    'health' => 12, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
+                    'health' => 12, 'maxHealth' => 12, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
             ),
             $logger
         );

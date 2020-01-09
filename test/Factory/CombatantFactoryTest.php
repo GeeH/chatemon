@@ -17,6 +17,7 @@ class CombatantFactoryTest extends TestCase
             'attack' => 10,
             'defence' => 20,
             'health' => 100,
+            'maxHealth' => 100,
             'name' => 'Spabby',
             'id' => Uuid::uuid4()->toString(),
             'moves' => [],

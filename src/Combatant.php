@@ -9,6 +9,7 @@ final class Combatant
     public int $level;
     public int $attack;
     public int $defence;
+    public int $maxHealth;
     public int $health;
     public string $name;
     public string $id;
