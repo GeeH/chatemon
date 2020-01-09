@@ -142,4 +142,28 @@ final class Combat
         return $this->combatantOne->health >= 1 ? $this->combatantOne : $this->combatantTwo;
     }
 
+    public function toArray(): array
+    {
+        $return = [
+            'combatantOne' => (array)$this->combatantOne,
+            'combatantTwo' => (array)$this->combatantTwo,
+            'turn' => $this->turn,
+            'turns' => $this->turns,
+            'id' => $this->id,
+            'winner' => $this->winner,
+        ];
+
+        $return['combatantOne']['moves'] = [];
+        foreach ($this->combatantOne->moves as $move) {
+            $return['combatantOne']['moves'][] = array($move);
+        }
+
+        $return['combatantTwo']['moves'] = [];
+        foreach ($this->combatantTwo->moves as $move) {
+            $return['combatantTwo']['moves'][] = array($move);
+        }
+
+        return $return;
+    }
+
 }

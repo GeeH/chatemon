@@ -106,4 +106,19 @@ final class CombatTest extends TestCase
         self::assertLessThanOrEqual($maximumDamage, $damage);
     }
 
+    public function testToArrayConvertsToReadableArray()
+    {
+        $combatArray = $this->combat->toArray();
+        $fields = ['combatantOne', 'combatantTwo', 'turn', 'turns', 'id', 'winner'];
+        foreach($fields as $field) {
+            self::assertArrayHasKey($field, $combatArray);
+        }
+        self::assertArrayHasKey('moves', $combatArray['combatantOne']);
+        self::assertIsArray($combatArray['combatantOne']['moves'][0]);
+
+        self::assertArrayHasKey('moves', $combatArray['combatantTwo']);
+        self::assertIsArray($combatArray['combatantTwo']['moves'][0]);
+
+    }
+
 }
