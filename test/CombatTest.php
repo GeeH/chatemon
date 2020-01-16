@@ -22,10 +22,23 @@ final class CombatTest extends TestCase
 
     public function setUp(): void
     {
+        $this->combat = $this->getCombat();
+    }
+
+    /**
+     * @param Logger $logger
+     * @throws Exception\PropertyDoesNotExistException
+     */
+    public function getCombat(Randomizer $randomizer = null): Combat
+    {
         $handler = new StreamHandler(__DIR__ . '/../log/combat.log', Logger::DEBUG);
         $logger = new Logger('test-logger', [$handler]);
 
-        $this->combat = new Combat(
+        if (is_null($randomizer)) {
+            $randomizer = new Randomizer();
+        }
+
+        return new Combat(
             CombatantFactory::create(
                 ['name' => 'One', 'level' => 1, 'attack' => 100, 'defence' => 5,
                     'health' => 20, 'maxHealth' => 20, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
@@ -34,6 +47,7 @@ final class CombatTest extends TestCase
                 ['name' => 'Two', 'level' => 1, 'attack' => 100, 'defence' => 5,
                     'health' => 12, 'maxHealth' => 12, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
             ),
+            $randomizer,
             $logger
         );
     }
@@ -111,7 +125,7 @@ final class CombatTest extends TestCase
     {
         $combatArray = $this->combat->toArray();
         $fields = ['combatantOne', 'combatantTwo', 'turn', 'turns', 'id', 'winner'];
-        foreach($fields as $field) {
+        foreach ($fields as $field) {
             self::assertArrayHasKey($field, $combatArray);
         }
         self::assertArrayHasKey('moves', $combatArray['combatantOne']);
@@ -119,7 +133,20 @@ final class CombatTest extends TestCase
 
         self::assertArrayHasKey('moves', $combatArray['combatantTwo']);
         self::assertIsArray($combatArray['combatantTwo']['moves'][0]);
+    }
 
+    public function testMoveMissesWithMaximumDiceRoll()
+    {
+        $randomizerMock = self::getMockBuilder(Randomizer::class)
+            ->getMock();
+
+        $randomizerMock->expects($this->once())
+            ->method('__invoke')
+            ->with(1, 100)
+            ->willReturn(100);
+
+        $combat = $this->getCombat($randomizerMock);
+        $combat->takeTurn(2);
     }
 
 }

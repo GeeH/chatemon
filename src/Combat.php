@@ -18,15 +18,22 @@ final class Combat
     protected string $id;
     protected bool $winner = false;
     private LoggerInterface $logger;
+    private Randomizer $randomizer;
 
     /**
      * @throws Exception
      */
-    public function __construct(Combatant $combatantOne, Combatant $combatantTwo, LoggerInterface $logger)
+    public function __construct(
+        Combatant $combatantOne,
+        Combatant $combatantTwo,
+        Randomizer $randomizer,
+        LoggerInterface $logger
+    )
     {
         $this->combatantOne = $combatantOne;
         $this->combatantTwo = $combatantTwo;
         $this->id = Uuid::uuid4()->toString();
+        $this->randomizer = $randomizer;
         $this->logger = $logger;
     }
 
@@ -55,15 +62,23 @@ final class Combat
         $defender = $this->{'combatant' . ($this->turn === 'One' ? 'Two' : 'One')};
         $this->logger->info('Defender is ' . $defender->name);
 
+        $this->turns++;
+        $this->turn = $this->turn === 'One' ? 'Two' : 'One';
+
+        // roll a D100 dice
+        $chanceToHit = $this->randomizer->__invoke(1, 100);
+        if ($chanceToHit > $move->accuracy) {
+            // we missed, do nothing
+            $this->logger->info('Missed attack');
+            return;
+        }
+
         $damage = $this->calculateDamage($attacker->level, $attacker->attack, $move->damage, $defender->defence);
 
         $this->logger->info('Damage is ' . $damage);
         $defender->health -= $damage;
 
         $this->logger->info('Defender\'s health is now ' . $defender->health);
-
-        $this->turns++;
-        $this->turn = $this->turn === 'One' ? 'Two' : 'One';
 
         if ($defender->health < 1) {
             $this->winner = true;
@@ -90,15 +105,15 @@ final class Combat
 
         return (int)floor(
             floor(
-                floor(
-                    floor(
-                        floor(
-                            floor(
-                                floor(
-                                    floor(
-                                        floor(
-                                            2 * $attackerLevel / 5 + 2) * $attackerAttack * $moveDamage)
-                                    / $defenderDefence) / 50) + 2) * 1 * 10) / 10) * random_int(217, 255)) / 255);
+            floor(
+            floor(
+            floor(
+            floor(
+            floor(
+            floor(
+            floor(
+                2 * $attackerLevel / 5 + 2) * $attackerAttack * $moveDamage)
+                / $defenderDefence) / 50) + 2) * 1 * 10) / 10) * $this->randomizer->__invoke(217, 255)) / 255);
     }
 
     public function getCombatantOne(): Combatant
