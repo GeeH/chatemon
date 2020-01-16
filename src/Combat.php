@@ -6,7 +6,6 @@ use Chatemon\Exception\CombatAlreadyWonException;
 use Chatemon\Exception\CombatNotWonException;
 use Chatemon\Exception\MoveDoesNotExistException;
 use Exception;
-use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 

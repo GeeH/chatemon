@@ -12,7 +12,6 @@ use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 
 /**
- * @todo Write better tests to ensure the damage algorithm matches website
  * @todo Clean everything up as it stinks
  * @todo Clean up damage algorithm so its more readable
  */
@@ -98,10 +97,12 @@ final class CombatTest extends TestCase
      * @dataProvider damageAlgorithmDataProvider
      */
     public function testDamageCalculator(
-        int $attackerLevel, int $attackerAttack, int $moveDamage, int $defenderDefense, $minimumDamage, $maximumDamage
+        int $attackerLevel, int $attackerAttack, int $moveDamage,
+        int $defenderDefense, int $minimumDamage, int $maximumDamage
     )
     {
-        $damage = $this->combat->calculateDamage($attackerLevel, $attackerAttack, $moveDamage, $defenderDefense);
+        $damage = $this->combat
+            ->calculateDamage($attackerLevel, $attackerAttack, $moveDamage, $defenderDefense);
         self::assertGreaterThanOrEqual($minimumDamage, $damage);
         self::assertLessThanOrEqual($maximumDamage, $damage);
     }
