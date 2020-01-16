@@ -105,15 +105,15 @@ final class Combat
 
         return (int)floor(
             floor(
-            floor(
-            floor(
-            floor(
-            floor(
-            floor(
-            floor(
-            floor(
-                2 * $attackerLevel / 5 + 2) * $attackerAttack * $moveDamage)
-                / $defenderDefence) / 50) + 2) * 1 * 10) / 10) * $this->randomizer->__invoke(217, 255)) / 255);
+                floor(
+                    floor(
+                        floor(
+                            floor(
+                                floor(
+                                    floor(
+                                        floor(
+                                            2 * $attackerLevel / 5 + 2) * $attackerAttack * $moveDamage)
+                                    / $defenderDefence) / 50) + 2) * 1 * 10) / 10) * $this->randomizer->__invoke(217, 255)) / 255);
     }
 
     public function getCombatantOne(): Combatant
@@ -160,25 +160,39 @@ final class Combat
     public function toArray(): array
     {
         $return = [
-            'combatantOne' => (array)$this->combatantOne,
-            'combatantTwo' => (array)$this->combatantTwo,
-            'turn' => $this->turn,
-            'turns' => $this->turns,
-            'id' => $this->id,
-            'winner' => $this->winner,
+            'combatantOne' => (array)$this->getCombatantOne(),
+            'combatantTwo' => (array)$this->getCombatantTwo(),
+            'turn' => $this->getTurn(),
+            'turns' => $this->getTurns(),
+            'id' => $this->getId(),
         ];
 
+        try {
+            $winner = $this->getWinner();
+        } catch (CombatNotWonException $e) {
+            $winner = false;
+        }
+        $return['winner'] = $winner;
+
         $return['combatantOne']['moves'] = [];
-        foreach ($this->combatantOne->moves as $move) {
+        foreach ($this->getCombatantOne()->moves as $move) {
             $return['combatantOne']['moves'][] = array($move);
         }
 
         $return['combatantTwo']['moves'] = [];
-        foreach ($this->combatantTwo->moves as $move) {
+        foreach ($this->getCombatantTwo()->moves as $move) {
             $return['combatantTwo']['moves'][] = array($move);
         }
 
         return $return;
+    }
+
+    public function setStateFromArray(array $data): void
+    {
+        $this->turn = $data['turn'];
+        $this->turns = $data['turns'];
+        $this->id = $data['id'];
+        $this->winner = $data['winner'];
     }
 
 }

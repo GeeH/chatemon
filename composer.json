@@ -21,6 +21,7 @@
     ],
     "require": {
         "ramsey/uuid": "^3.9",
-        "monolog/monolog": "^2.0"
+        "monolog/monolog": "^2.0",
+        "ext-json": "*"
     }
 }

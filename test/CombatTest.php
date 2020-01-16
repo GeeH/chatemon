@@ -1,11 +1,13 @@
 <?php
 
-namespace Chatemon;
+namespace ChatemonTest;
 
+use Chatemon\Combat;
 use Chatemon\Exception\CombatAlreadyWonException;
 use Chatemon\Exception\CombatNotWonException;
 use Chatemon\Exception\MoveDoesNotExistException;
 use Chatemon\Factory\CombatantFactory;
+use Chatemon\Randomizer;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
@@ -22,14 +24,10 @@ final class CombatTest extends TestCase
 
     public function setUp(): void
     {
-        $this->combat = $this->getCombat();
+        $this->combat = self::getCombat();
     }
 
-    /**
-     * @param Logger $logger
-     * @throws Exception\PropertyDoesNotExistException
-     */
-    public function getCombat(Randomizer $randomizer = null): Combat
+    public static function getCombat(Randomizer $randomizer = null): Combat
     {
         $handler = new StreamHandler(__DIR__ . '/../log/combat.log', Logger::DEBUG);
         $logger = new Logger('test-logger', [$handler]);
@@ -121,6 +119,20 @@ final class CombatTest extends TestCase
         self::assertLessThanOrEqual($maximumDamage, $damage);
     }
 
+    public function testMoveMissesWithMaximumDiceRoll()
+    {
+        $randomizerMock = self::getMockBuilder(Randomizer::class)
+            ->getMock();
+
+        $randomizerMock->expects($this->once())
+            ->method('__invoke')
+            ->with(1, 100)
+            ->willReturn(100);
+
+        $combat = $this->getCombat($randomizerMock);
+        $combat->takeTurn(2);
+    }
+
     public function testToArrayConvertsToReadableArray()
     {
         $combatArray = $this->combat->toArray();
@@ -135,18 +147,17 @@ final class CombatTest extends TestCase
         self::assertIsArray($combatArray['combatantTwo']['moves'][0]);
     }
 
-    public function testMoveMissesWithMaximumDiceRoll()
-    {
-        $randomizerMock = self::getMockBuilder(Randomizer::class)
-            ->getMock();
-
-        $randomizerMock->expects($this->once())
-            ->method('__invoke')
-            ->with(1, 100)
-            ->willReturn(100);
-
-        $combat = $this->getCombat($randomizerMock);
-        $combat->takeTurn(2);
-    }
+//    public function testFromArrayCreatesAFunctionalCombatObject()
+//    {
+//        $json = '{"combatantOne":{"level":13,"attack":142,"defence":20,"maxHealth":50,"health":36,"name":"Developer","id":"d4611e48-481d-4bf0-9c5b-81fb3dfc66c9","moves":[[{"name":"Elevator Pitch","accuracy":100,"damage":10}],[{"name":"HR Message","accuracy":90,"damage":20}],[{"name":"Use Your Words","accuracy":50,"damage":100}]]},"combatantTwo":{"level":21,"attack":130,"defence":23,"maxHealth":47,"health":38,"name":"HR Executive","id":"4d22033d-4936-478e-940b-1587eed2319b","moves":[[{"name":"Elevator Pitch","accuracy":100,"damage":10}],[{"name":"HR Message","accuracy":90,"damage":20}],[{"name":"Use Your Words","accuracy":50,"damage":100}]]},"turn":"One","turns":2,"id":"7e7e0ac3-a3ac-48ef-8839-f0893c5f2902","winner":false}';
+//        $data = json_decode($json, true);
+//
+//        $combatantOne = CombatantFactory::create($data['combatantOne']);
+//        $combatantTwo = CombatantFactory::create($data['combatantTwo']);
+//
+//        $logger = new Logger(new StreamHandler('foo'));
+//        $combat = new Combat($combatantOne, $combatantTwo, new Randomizer(), $logger);
+//        $combat->setStateFromArray($data);
+//    }
 
 }
