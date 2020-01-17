@@ -50,7 +50,7 @@ final class Combat
         $this->logger->info('It\'s turn ' . $this->combatState->getTurn());
 
         /** @var Combatant $attacker */
-        $attacker = $this->{'combatant' . $this->getTurn()};
+        $attacker = $this->{'combatant' . $this->combatState->getTurn()};
 
         if (!array_key_exists($moveIndex, $attacker->moves)) {
             throw new MoveDoesNotExistException();
