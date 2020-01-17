@@ -12,9 +12,6 @@ final class CombatState
 
     protected function __construct(string $turn = 'One', int $turns = 0, bool $winner = false)
     {
-        assert(in_array($turn, ['One', 'Two'], true), 'Turn must be "One" or "Two"');
-        assert($turns >= 0, 'Turns must be greater or equal to zero');
-
         $this->turn   = $turn;
         $this->turns  = $turns;
         $this->winner = $winner;
@@ -25,6 +22,9 @@ final class CombatState
         assert(array_key_exists('turn', $data), 'data expects "turn" key to exist');
         assert(array_key_exists('turns', $data), 'data expects "turns" key to exist');
         assert(array_key_exists('winner', $data), 'data expects "winner" key to exist');
+
+        assert(in_array($data['turn'], ['One', 'Two'], true), 'Turn must be "One" or "Two"');
+        assert($data['turns'] >= 0, 'Turns cannot be negative');
 
         return new CombatState($data['turn'], $data['turns'], $data['winner']);
     }
@@ -72,7 +72,7 @@ final class CombatState
         ];
     }
 
-    public function markWon(): void
+    public function markWon() : void
     {
         $this->winner = true;
     }
