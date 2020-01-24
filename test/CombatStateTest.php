@@ -7,12 +7,12 @@ use PHPUnit\Framework\TestCase;
 
 class CombatStateTest extends TestCase
 {
-    public function testFreshCreatesBasicState() : void
+    public function testFreshCreatesBasicState(): void
     {
         $freshCombatState = CombatState::fresh();
-        $turnProperty     = new \ReflectionProperty(CombatState::class, 'turn');
-        $turnsProperty    = new \ReflectionProperty(CombatState::class, 'turns');
-        $winnerProperty   = new \ReflectionProperty(CombatState::class, 'winner');
+        $turnProperty = new \ReflectionProperty(CombatState::class, 'turn');
+        $turnsProperty = new \ReflectionProperty(CombatState::class, 'turns');
+        $winnerProperty = new \ReflectionProperty(CombatState::class, 'winner');
         $turnProperty->setAccessible(true);
         $turnsProperty->setAccessible(true);
         $winnerProperty->setAccessible(true);
@@ -23,28 +23,28 @@ class CombatStateTest extends TestCase
 
     }
 
-    public function testThatCombatStateErrorsWithoutTurn() : void
+    public function testThatCombatStateErrorsWithoutTurn(): void
     {
         $this->expectError();
         $this->expectErrorMessage('assert(): data expects "turn" key to exist failed');
         CombatState::fromArray([]);
     }
 
-    public function testThatCombatStateErrorsWithoutTurnsKey() : void
+    public function testThatCombatStateErrorsWithoutTurnsKey(): void
     {
         $this->expectError();
         $this->expectErrorMessage('assert(): data expects "turns" key to exist');
         CombatState::fromArray(['turn' => '']);
     }
 
-    public function testThatCombatStateErrorsWithoutWinnerKey() : void
+    public function testThatCombatStateErrorsWithoutWinnerKey(): void
     {
         $this->expectError();
         $this->expectErrorMessage('assert(): data expects "winner" key to exist failed');
         CombatState::fromArray(['turn' => '', 'turns' => 0]);
     }
 
-    public function testThatCombatStateErrorsWithInvalidTurnValue() : void
+    public function testThatCombatStateErrorsWithInvalidTurnValue(): void
     {
         $this->expectError();
         $this->expectErrorMessage('assert(): Turn must be "One" or "Two" failed');
@@ -53,7 +53,7 @@ class CombatStateTest extends TestCase
         CombatState::fromArray(['turn' => 0, 'turns' => 0, 'winner' => false]);
     }
 
-    public function testThatCombatStateDoesNotErrorWithCorrectTurnValue() : void
+    public function testThatCombatStateDoesNotErrorWithCorrectTurnValue(): void
     {
         try {
             $combatStateInstance = CombatState::fromArray(['turn' => 'One', 'turns' => 0, 'winner' => false]);
@@ -70,14 +70,14 @@ class CombatStateTest extends TestCase
         }
     }
 
-    public function testCombatStateErrorsWhenPassedNegativeTurns() : void
+    public function testCombatStateErrorsWhenPassedNegativeTurns(): void
     {
         $this->expectError();
         $this->expectErrorMessage('assert(): Turns cannot be negative failed');
         CombatState::fromArray(['turn' => 'One', 'turns' => -1, 'winner' => false]);
     }
 
-    public function testGetTurnReturnsPropertyValue() : void
+    public function testGetTurnReturnsPropertyValue(): void
     {
         $testValue = sha1(random_bytes(10));
 
@@ -90,7 +90,7 @@ class CombatStateTest extends TestCase
         self::assertSame($testValue, $combatStateInstance->getTurn());
     }
 
-    public function testGetTurnsReturnsPropertyValue() : void
+    public function testGetTurnsReturnsPropertyValue(): void
     {
         $testValue = random_int(11, 99);
 
@@ -107,7 +107,7 @@ class CombatStateTest extends TestCase
      * @depends testFreshCreatesBasicState
      * @depends testGetTurnReturnsPropertyValue
      */
-    public function testChangeTurnSwitchesTurn() : void
+    public function testChangeTurnSwitchesTurn(): void
     {
         $combatStateInstance = CombatState::fresh();
         self::assertSame('One', $combatStateInstance->getTurn());
@@ -134,9 +134,9 @@ class CombatStateTest extends TestCase
         }
     }
 
-    public function testHasWinnerReturnsPropertyValue() : void
+    public function testHasWinnerReturnsPropertyValue(): void
     {
-        $testValue = (bool) random_int(0, 1);
+        $testValue = (bool)random_int(0, 1);
 
         $winnerProperty = new \ReflectionProperty(CombatState::class, 'winner');
         $winnerProperty->setAccessible(true);
@@ -151,7 +151,7 @@ class CombatStateTest extends TestCase
      * @depends testFreshCreatesBasicState
      * @depends testHasWinnerReturnsPropertyValue
      */
-    public function testMarkWonSetsWinnerToTrue() : void
+    public function testMarkWonSetsWinnerToTrue(): void
     {
         $combatStateInstance = CombatState::fresh();
         self::assertFalse($combatStateInstance->hasWinner());

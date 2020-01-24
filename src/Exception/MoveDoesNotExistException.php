@@ -3,4 +3,5 @@
 namespace Chatemon\Exception;
 
 class MoveDoesNotExistException extends \Exception
-{}
+{
+}

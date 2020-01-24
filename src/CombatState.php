@@ -12,12 +12,12 @@ final class CombatState
 
     protected function __construct(string $turn = 'One', int $turns = 0, bool $winner = false)
     {
-        $this->turn   = $turn;
-        $this->turns  = $turns;
+        $this->turn = $turn;
+        $this->turns = $turns;
         $this->winner = $winner;
     }
 
-    public static function fromArray(array $data) : CombatState
+    public static function fromArray(array $data): CombatState
     {
         assert(array_key_exists('turn', $data), 'data expects "turn" key to exist');
         assert(array_key_exists('turns', $data), 'data expects "turns" key to exist');
@@ -29,50 +29,50 @@ final class CombatState
         return new CombatState($data['turn'], $data['turns'], $data['winner']);
     }
 
-    public static function fresh() : CombatState
+    public static function fresh(): CombatState
     {
         return new CombatState('One', 0, false);
     }
 
-    public function getTurn() : string
+    public function getTurn(): string
     {
         return $this->turn;
     }
 
-    public function getTurns() : int
+    public function getTurns(): int
     {
         return $this->turns;
     }
 
-    public function hasWinner() : bool
+    public function hasWinner(): bool
     {
         return $this->winner;
     }
 
-    public function changeTurn() : string
+    public function changeTurn(): string
     {
         $this->turn = $this->turn === 'One' ? 'Two' : 'One';
 
         return $this->turn;
     }
 
-    public function incrementTurnCount() : int
+    public function incrementTurnCount(): int
     {
         $this->turns++;
 
         return $this->turns;
     }
 
-    public function toArray() : array
+    public function toArray(): array
     {
         return [
-            'turn'   => $this->getTurn(),
-            'turns'  => $this->getTurns(),
+            'turn' => $this->getTurn(),
+            'turns' => $this->getTurns(),
             'winner' => $this->hasWinner(),
         ];
     }
 
-    public function markWon() : void
+    public function markWon(): void
     {
         $this->winner = true;
     }
