@@ -149,17 +149,4 @@ final class CombatTest extends TestCase
         self::assertIsArray($combatArray['combatantTwo']['moves'][0]);
     }
 
-//    public function testFromArrayCreatesAFunctionalCombatObject()
-//    {
-//        $json = '{"combatantOne":{"level":13,"attack":142,"defence":20,"maxHealth":50,"health":36,"name":"Developer","id":"d4611e48-481d-4bf0-9c5b-81fb3dfc66c9","moves":[[{"name":"Elevator Pitch","accuracy":100,"damage":10}],[{"name":"HR Message","accuracy":90,"damage":20}],[{"name":"Use Your Words","accuracy":50,"damage":100}]]},"combatantTwo":{"level":21,"attack":130,"defence":23,"maxHealth":47,"health":38,"name":"HR Executive","id":"4d22033d-4936-478e-940b-1587eed2319b","moves":[[{"name":"Elevator Pitch","accuracy":100,"damage":10}],[{"name":"HR Message","accuracy":90,"damage":20}],[{"name":"Use Your Words","accuracy":50,"damage":100}]]},"turn":"One","turns":2,"id":"7e7e0ac3-a3ac-48ef-8839-f0893c5f2902","winner":false}';
-//        $data = json_decode($json, true);
-//
-//        $combatantOne = CombatantFactory::create($data['combatantOne']);
-//        $combatantTwo = CombatantFactory::create($data['combatantTwo']);
-//
-//        $logger = new Logger(new StreamHandler('foo'));
-//        $combat = new Combat($combatantOne, $combatantTwo, new Randomizer(), $logger);
-//        $combat->setStateFromArray($data);
-//    }
-
 }
