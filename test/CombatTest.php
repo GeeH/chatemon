@@ -14,10 +14,6 @@ use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 
-/**
- * @todo Clean everything up as it stinks
- * @todo Clean up damage algorithm so its more readable
- */
 final class CombatTest extends TestCase
 {
 
