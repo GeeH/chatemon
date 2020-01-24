@@ -3,6 +3,7 @@
 namespace ChatemonTest;
 
 use Chatemon\Combat;
+use Chatemon\CombatState;
 use Chatemon\Exception\CombatAlreadyWonException;
 use Chatemon\Exception\CombatNotWonException;
 use Chatemon\Exception\MoveDoesNotExistException;
@@ -45,6 +46,7 @@ final class CombatTest extends TestCase
                 ['name' => 'Two', 'level' => 1, 'attack' => 100, 'defence' => 5,
                     'health' => 12, 'maxHealth' => 12, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
             ),
+            CombatState::fresh(),
             $randomizer,
             $logger
         );

@@ -13,10 +13,8 @@ final class Combat
 {
     protected Combatant $combatantOne;
     protected Combatant $combatantTwo;
-    protected string $turn = 'One';
-    protected int $turns = 0;
+    protected CombatState $combatState;
     protected string $id;
-    protected bool $winner = false;
     private LoggerInterface $logger;
     private Randomizer $randomizer;
 
@@ -26,12 +24,14 @@ final class Combat
     public function __construct(
         Combatant $combatantOne,
         Combatant $combatantTwo,
+        CombatState $combatState,
         Randomizer $randomizer,
         LoggerInterface $logger
     )
     {
         $this->combatantOne = $combatantOne;
         $this->combatantTwo = $combatantTwo;
+        $this->combatState = $combatState;
         $this->id = Uuid::uuid4()->toString();
         $this->randomizer = $randomizer;
         $this->logger = $logger;
@@ -43,14 +43,14 @@ final class Combat
      */
     public function takeTurn(int $moveIndex): void
     {
-        if ($this->winner) {
+        if ($this->combatState->hasWinner()) {
             throw new CombatAlreadyWonException();
         }
 
-        $this->logger->info('It\'s turn ' . $this->turns);
+        $this->logger->info('It\'s turn ' . $this->combatState->getTurn());
 
         /** @var Combatant $attacker */
-        $attacker = $this->{'combatant' . $this->turn};
+        $attacker = $this->{'combatant' . $this->combatState->getTurn()};
 
         if (!array_key_exists($moveIndex, $attacker->moves)) {
             throw new MoveDoesNotExistException();
@@ -59,11 +59,11 @@ final class Combat
         $this->logger->info('Attacker is ' . $attacker->name);
 
         /** @var Combatant $defender */
-        $defender = $this->{'combatant' . ($this->turn === 'One' ? 'Two' : 'One')};
+        $defender = $this->{'combatant' . ($this->combatState->getTurn() === 'One' ? 'Two' : 'One')};
         $this->logger->info('Defender is ' . $defender->name);
 
-        $this->turns++;
-        $this->turn = $this->turn === 'One' ? 'Two' : 'One';
+        $this->combatState->incrementTurnCount();
+        $this->combatState->changeTurn();
 
         // roll a D100 dice
         $chanceToHit = $this->randomizer->__invoke(1, 100);
@@ -81,7 +81,7 @@ final class Combat
         $this->logger->info('Defender\'s health is now ' . $defender->health);
 
         if ($defender->health < 1) {
-            $this->winner = true;
+            $this->combatState->markWon();
         }
     }
 
@@ -128,12 +128,12 @@ final class Combat
 
     public function getTurn(): string
     {
-        return $this->turn;
+        return $this->combatState->getTurn();
     }
 
     public function getTurns(): int
     {
-        return $this->turns;
+        return $this->combatState->getTurns();
     }
 
     public function getId(): string
@@ -143,7 +143,7 @@ final class Combat
 
     public function isWinner(): bool
     {
-        return $this->winner;
+        return $this->combatState->hasWinner();
     }
 
     /**
@@ -151,7 +151,7 @@ final class Combat
      */
     public function getWinner(): Combatant
     {
-        if (!$this->winner) {
+        if (!$this->combatState->hasWinner()) {
             throw new CombatNotWonException();
         }
         return $this->combatantOne->health >= 1 ? $this->combatantOne : $this->combatantTwo;
@@ -159,20 +159,14 @@ final class Combat
 
     public function toArray(): array
     {
-        $return = [
-            'combatantOne' => (array)$this->getCombatantOne(),
-            'combatantTwo' => (array)$this->getCombatantTwo(),
-            'turn' => $this->getTurn(),
-            'turns' => $this->getTurns(),
-            'id' => $this->getId(),
-        ];
-
-        try {
-            $winner = $this->getWinner();
-        } catch (CombatNotWonException $e) {
-            $winner = false;
-        }
-        $return['winner'] = $winner;
+        $return = array_merge(
+            [
+                'combatantOne' => (array)$this->getCombatantOne(),
+                'combatantTwo' => (array)$this->getCombatantTwo(),
+                'id' => $this->getId(),
+            ],
+            $this->combatState->toArray()
+        );
 
         $return['combatantOne']['moves'] = [];
         foreach ($this->getCombatantOne()->moves as $move) {
@@ -186,13 +180,4 @@ final class Combat
 
         return $return;
     }
-
-    public function setStateFromArray(array $data): void
-    {
-        $this->turn = $data['turn'];
-        $this->turns = $data['turns'];
-        $this->id = $data['id'];
-        $this->winner = $data['winner'];
-    }
-
 }
