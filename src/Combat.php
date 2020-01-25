@@ -41,36 +41,48 @@ final class Combat
      * @throws CombatAlreadyWonException
      * @throws MoveDoesNotExistException
      */
-    public function takeTurn(int $moveIndex): void
+    public function takeTurn(int $oneMoveIndex, int $twoMoveIndex): void
     {
         if ($this->combatState->hasWinner()) {
             throw new CombatAlreadyWonException();
         }
 
-        $this->logger->info('It\'s turn ' . $this->combatState->getTurn());
-
-        /** @var Combatant $attacker */
-        $attacker = $this->{'combatant' . $this->combatState->getTurn()};
-
-        if (!array_key_exists($moveIndex, $attacker->moves)) {
+        if (!array_key_exists($oneMoveIndex, $this->combatantOne->moves)
+            || !array_key_exists($twoMoveIndex, $this->combatantTwo->moves)) {
             throw new MoveDoesNotExistException();
         }
+
+        $combatantGoingFirst = $this->getCombatantGoingFirst();
+
+        $attacker = $this->{'combatant' . $combatantGoingFirst};
+        $this->logger->info($attacker->name . ' is going first');
+        $defender = $this->{'combatant' . ($combatantGoingFirst === 'One' ? 'Two' : 'One')};
+
+        $moveIndex = lcfirst($combatantGoingFirst . 'MoveIndex');
+        if (!$this->attackDefender($attacker, $defender, $$moveIndex)) {
+            $attacker = $this->{'combatant' . ($combatantGoingFirst === 'One' ? 'Two' : 'One')};
+            $defender = $this->{'combatant' . ($combatantGoingFirst === 'One' ? 'One' : 'Two')};
+            $moveIndex = ($moveIndex === 'oneMoveIndex' ? 'twoMoveIndex' : 'oneMoveIndex');
+            $this->attackDefender($attacker, $defender, $$moveIndex);
+        }
+
+        $this->combatState->incrementTurnCount();
+    }
+
+    public function attackDefender(Combatant $attacker, Combatant $defender, $moveIndex): bool
+    {
         $move = $attacker->moves[$moveIndex];
         $this->logger->info('Attacker is ' . $attacker->name);
 
         /** @var Combatant $defender */
-        $defender = $this->{'combatant' . ($this->combatState->getTurn() === 'One' ? 'Two' : 'One')};
         $this->logger->info('Defender is ' . $defender->name);
-
-        $this->combatState->incrementTurnCount();
-        $this->combatState->changeTurn();
 
         // roll a D100 dice
         $chanceToHit = $this->randomizer->__invoke(1, 100);
         if ($chanceToHit > $move->accuracy) {
             // we missed, do nothing
             $this->logger->info('Missed attack');
-            return;
+            return false;
         }
 
         $damage = $this->calculateDamage($attacker->level, $attacker->attack, $move->damage, $defender->defence);
@@ -82,7 +94,10 @@ final class Combat
 
         if ($defender->health < 1) {
             $this->combatState->markWon();
+            return true;
         }
+
+        return false;
     }
 
     public function calculateDamage(
@@ -124,11 +139,6 @@ final class Combat
     public function getCombatantTwo(): Combatant
     {
         return $this->combatantTwo;
-    }
-
-    public function getTurn(): string
-    {
-        return $this->combatState->getTurn();
     }
 
     public function getTurns(): int
@@ -180,4 +190,23 @@ final class Combat
 
         return $return;
     }
+
+    private function getCombatantGoingFirst(): string
+    {
+        if ($this->combatantOne->speed > $this->combatantTwo->speed) {
+            return 'One';
+        }
+
+        if ($this->combatantTwo->speed > $this->combatantOne->speed) {
+            return 'Two';
+        }
+
+        $diceRoll = $this->randomizer->__invoke(1, 2);
+        if ($diceRoll === 1) {
+            return 'One';
+        }
+
+        return 'Two';
+    }
+
 }

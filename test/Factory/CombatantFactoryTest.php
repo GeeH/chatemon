@@ -19,6 +19,7 @@ class CombatantFactoryTest extends TestCase
             'health' => 100,
             'maxHealth' => 100,
             'name' => 'Spabby',
+            'speed' => 10,
             'id' => Uuid::uuid4()->toString(),
             'moves' => [],
         ]);
@@ -28,6 +29,7 @@ class CombatantFactoryTest extends TestCase
         self::assertEquals(20, $combatant->defence);
         self::assertEquals(100, $combatant->health);
         self::assertEquals('Spabby', $combatant->name);
+        self::assertEquals(10, $combatant->speed);
         self::assertCount(3, $combatant->moves);
         self::assertTrue(Uuid::isValid($combatant->id));
     }

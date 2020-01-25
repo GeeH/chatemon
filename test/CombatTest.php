@@ -24,7 +24,11 @@ final class CombatTest extends TestCase
         $this->combat = self::getCombat();
     }
 
-    public static function getCombat(Randomizer $randomizer = null): Combat
+    public static function getCombat(
+        Randomizer $randomizer = null,
+        array $combatantOneData = [],
+        array $combatantTwoData = []
+    ): Combat
     {
         $handler = new StreamHandler(__DIR__ . '/../log/combat.log', Logger::DEBUG);
         $logger = new Logger('test-logger', [$handler]);
@@ -35,12 +39,20 @@ final class CombatTest extends TestCase
 
         return new Combat(
             CombatantFactory::create(
-                ['name' => 'One', 'level' => 1, 'attack' => 100, 'defence' => 5,
-                    'health' => 20, 'maxHealth' => 20, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
+                !empty($combatantOneData) ? $combatantOneData :
+                    [
+                        'name' => 'One', 'level' => 1, 'attack' => 100, 'defence' => 5,
+                        'health' => 20, 'maxHealth' => 20, 'moves' => [], 'speed' => 10,
+                        'id' => Uuid::uuid4()->toString()
+                    ]
             ),
             CombatantFactory::create(
-                ['name' => 'Two', 'level' => 1, 'attack' => 100, 'defence' => 5,
-                    'health' => 12, 'maxHealth' => 12, 'moves' => [], 'id' => Uuid::uuid4()->toString()]
+                !empty($combatantTwoData) ? $combatantTwoData :
+                    [
+                        'name' => 'Two', 'level' => 1, 'attack' => 100, 'defence' => 5,
+                        'health' => 12, 'maxHealth' => 12, 'moves' => [], 'speed' => 5,
+                        'id' => Uuid::uuid4()->toString()
+                    ]
             ),
             CombatState::fresh(),
             $randomizer,
@@ -53,34 +65,28 @@ final class CombatTest extends TestCase
         self::assertTrue(Uuid::isValid($this->combat->getId()));
     }
 
-    public function testTakingTurnDecreasesDefenderHealthAndIncrementsTurn()
+    public function testTakingTurnIncrementsTurnCounter()
     {
-        $this->combat->takeTurn(0);
-
-        self::assertGreaterThanOrEqual(2, $this->combat->getCombatantTwo()->health);
-        self::assertLessThanOrEqual(4, $this->combat->getCombatantTwo()->health);
-
+        $this->combat->takeTurn(0, 0);
         self::assertEquals(1, $this->combat->getTurns());
-        self::assertEquals('Two', $this->combat->getTurn());
     }
 
     public function testRunningCombatTurnsGeneratesWinner()
     {
         while (!$this->combat->isWinner()) {
-            $this->combat->takeTurn(0);
+            $this->combat->takeTurn(0, 0);
         }
 
-        self::assertEquals(3, $this->combat->getTurns());
-        self::assertEquals('One', $this->combat->getWinner()->name);
+        self::assertEquals(2, $this->combat->getTurns());
     }
 
     public function testRunningCombatTurnWhenWinnerExistsThrowsException()
     {
         while (!$this->combat->isWinner()) {
-            $this->combat->takeTurn(0);
+            $this->combat->takeTurn(0, 0);
         }
         self::expectException(CombatAlreadyWonException::class);
-        $this->combat->takeTurn(0);
+        $this->combat->takeTurn(0, 0);
     }
 
     public function testGettingWinnerWhenNoWinnerExistsThrowsException()
@@ -92,7 +98,10 @@ final class CombatTest extends TestCase
     public function testPlayingTurnWithInvalidMoveThrowsException()
     {
         self::expectException(MoveDoesNotExistException::class);
-        $this->combat->takeTurn(100);
+        $this->combat->takeTurn(100, 0);
+
+        self::expectException(MoveDoesNotExistException::class);
+        $this->combat->takeTurn(0, 100);
     }
 
     public function damageAlgorithmDataProvider()
@@ -122,19 +131,22 @@ final class CombatTest extends TestCase
         $randomizerMock = self::getMockBuilder(Randomizer::class)
             ->getMock();
 
-        $randomizerMock->expects($this->once())
+        $randomizerMock->expects($this->exactly(2))
             ->method('__invoke')
             ->with(1, 100)
             ->willReturn(100);
 
         $combat = $this->getCombat($randomizerMock);
-        $combat->takeTurn(2);
+        $combat->takeTurn(2, 2);
+
+        self::assertEquals(20, $combat->getCombatantOne()->health);
+        self::assertEquals(12, $combat->getCombatantTwo()->health);
     }
 
     public function testToArrayConvertsToReadableArray()
     {
         $combatArray = $this->combat->toArray();
-        $fields = ['combatantOne', 'combatantTwo', 'turn', 'turns', 'id', 'winner'];
+        $fields = ['combatantOne', 'combatantTwo', 'turns', 'id', 'winner'];
         foreach ($fields as $field) {
             self::assertArrayHasKey($field, $combatArray);
         }
@@ -143,6 +155,39 @@ final class CombatTest extends TestCase
 
         self::assertArrayHasKey('moves', $combatArray['combatantTwo']);
         self::assertIsArray($combatArray['combatantTwo']['moves'][0]);
+    }
+
+    public function testCombatantWithHigherSpeedGoesFirst()
+    {
+        $combat = $this->getCombat(null,
+            [
+                'level' => 1,
+                'attack' => 1,
+                'defence' => 1,
+                'health' => 1,
+                'maxHealth' => 1,
+                'name' => 'One',
+                'speed' => 1,
+                'id' => Uuid::uuid4()->toString(),
+                'moves' => [],
+            ],
+            [
+                'level' => 100,
+                'attack' => 100,
+                'defence' => 100,
+                'health' => 100,
+                'maxHealth' => 100,
+                'name' => 'Two',
+                'speed' => 100,
+                'id' => Uuid::uuid4()->toString(),
+                'moves' => [],
+            ]
+        );
+        $combat->takeTurn(0, 0);
+        self::assertTrue($combat->isWinner());
+        self::assertEquals($combat->getCombatantTwo(), $combat->getWinner());
+        self::assertEquals(100, $combat->getCombatantTwo()->health);
+        self::assertLessThanOrEqual(0, $combat->getCombatantOne()->health);
     }
 
 }

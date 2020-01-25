@@ -12,6 +12,7 @@ final class Combatant
     public int $maxHealth;
     public int $health;
     public string $name;
+    public int $speed;
     public string $id;
     /** @var Move[] $moves */
     public array $moves = [];
