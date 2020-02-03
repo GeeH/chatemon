@@ -190,4 +190,42 @@ final class CombatTest extends TestCase
         self::assertLessThanOrEqual(0, $combat->getCombatantOne()->health);
     }
 
+    public function testThatARandomCombatantGoesFirstIfCombatantsHaveTheSameSpeed()
+    {
+        $randomiserMock = $this->getMockBuilder(Randomizer::class)
+            ->getMock();
+
+        $randomiserMock->expects($this->once())
+            ->method('__invoke')
+            ->with(1, 2)
+            ->willReturn(2);
+
+        $combat = $this->getCombat($randomiserMock,
+            [
+                'level' => 1,
+                'attack' => 1,
+                'defence' => 1,
+                'health' => 1,
+                'maxHealth' => 1,
+                'name' => 'One',
+                'speed' => 100,
+                'id' => Uuid::uuid4()->toString(),
+                'moves' => [],
+            ],
+            [
+                'level' => 100,
+                'attack' => 100,
+                'defence' => 100,
+                'health' => 100,
+                'maxHealth' => 100,
+                'name' => 'Two',
+                'speed' => 100,
+                'id' => Uuid::uuid4()->toString(),
+                'moves' => [],
+            ]
+        );
+
+        self::assertEquals('Two', $combat->getCombatantGoingFirst());
+    }
+
 }

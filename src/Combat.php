@@ -17,6 +17,7 @@ final class Combat
     protected string $id;
     private LoggerInterface $logger;
     private Randomizer $randomizer;
+    private array $feedback = [];
 
     /**
      * @throws Exception
@@ -41,8 +42,10 @@ final class Combat
      * @throws CombatAlreadyWonException
      * @throws MoveDoesNotExistException
      */
-    public function takeTurn(int $oneMoveIndex, int $twoMoveIndex): void
+    public function takeTurn(int $oneMoveIndex, int $twoMoveIndex): array
     {
+        $this->feedback = [];
+
         if ($this->combatState->hasWinner()) {
             throw new CombatAlreadyWonException();
         }
@@ -58,8 +61,10 @@ final class Combat
         $this->logger->info($attacker->name . ' is going first');
         $defender = $this->{'combatant' . ($combatantGoingFirst === 'One' ? 'Two' : 'One')};
 
+        // @todo Messsy - refactor
         $moveIndex = lcfirst($combatantGoingFirst . 'MoveIndex');
         if (!$this->attackDefender($attacker, $defender, $$moveIndex)) {
+
             $attacker = $this->{'combatant' . ($combatantGoingFirst === 'One' ? 'Two' : 'One')};
             $defender = $this->{'combatant' . ($combatantGoingFirst === 'One' ? 'One' : 'Two')};
             $moveIndex = ($moveIndex === 'oneMoveIndex' ? 'twoMoveIndex' : 'oneMoveIndex');
@@ -67,6 +72,8 @@ final class Combat
         }
 
         $this->combatState->incrementTurnCount();
+
+        return $this->feedback;
     }
 
     public function attackDefender(Combatant $attacker, Combatant $defender, $moveIndex): bool
@@ -80,11 +87,13 @@ final class Combat
         // roll a D100 dice
         $chanceToHit = $this->randomizer->__invoke(1, 100);
         if ($chanceToHit > $move->accuracy) {
+            $this->feedback[] = "{$attacker->name} attacked {$defender->name} but they missed";
             // we missed, do nothing
             $this->logger->info('Missed attack');
             return false;
         }
 
+        $this->feedback[] = "{$attacker->name} attacked {$defender->name} it was effective";
         $damage = $this->calculateDamage($attacker->level, $attacker->attack, $move->damage, $defender->defence);
 
         $this->logger->info('Damage is ' . $damage);
@@ -191,7 +200,11 @@ final class Combat
         return $return;
     }
 
-    private function getCombatantGoingFirst(): string
+    /**
+     * @todo Make private again and test better
+     * @todo Give 100% coverage
+     */
+    public function getCombatantGoingFirst(): string
     {
         if ($this->combatantOne->speed > $this->combatantTwo->speed) {
             return 'One';
